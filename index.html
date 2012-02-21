@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<!-- Always force latest IE rendering engine (even in intranet) & Chrome Frame
+		Remove this if you use the .htaccess -->
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+		<title>index</title>
+		<meta name="description" content="" />
+		<meta name="author" content="Jonathan Wohl" />
+		<meta name="viewport" content="width=device-width; initial-scale=1.0" />
+		<!-- Replace favicon.ico & apple-touch-icon.png in the root of your domain and delete these references -->
+		<link rel="shortcut icon" href="/favicon.ico" />
+		<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+		<script src="js/jquery.min.js" type="text/javascript" charset="utf-8"></script>
+		<script src="js/underscore-min.js" type="text/javascript" charset="utf-8"></script>
+		<script src="js/raphael-min.js" type="text/javascript" charset="utf-8"></script>
+<!-- 		<script src="js/icons.js" type="text/javascript" charset="utf-8"></script> -->
+		<style type="text/css" media="screen">
+			body {
+				background: #aab;
+			}
+		</style>
+	</head>
+	<body>
+		<div>
+			<header>
+				<h1>index</h1>
+			</header>
+			<nav>
+				<p>
+					<a href="/">Home</a>
+				</p>
+				<p>
+					<a href="/contact">Contact</a>
+				</p>
+			</nav>
+			<div id="Map">
+				
+			</div>
+			<footer>
+				<p>
+					&copy; Copyright by Jonathan Wohl
+				</p>
+			</footer>
+		</div>
+	<script>
+		var iconsA = [];
+		var r = Raphael(0,0,960, 960);
+		var jsonIcons;
+		
+		function reorderIcons() {
+			console.log("reorderIcons");
+			iconsA = _.shuffle(iconsA);
+			animateIcons();
+		}
+		
+		function drawIcons() {
+			var dx = 72,
+    			dy = 72,
+    			nx = 5,
+    			count = 0;
+    		_.each(iconsA, function(el) {
+    			el = el.set;
+    			if(el.x != undefined) {
+    				el.translate(-el.x, -el.y).show();	
+    			}
+    			var x = count*dx;
+				var y = dy;
+				el.x = x;
+				el.y = y;
+				el.translate(x, y).show();
+				count += 1;
+	            if(count >= 5) {
+	            	count = 0;
+	            	dy += 72;
+	            }
+    		});
+		}
+		
+		function animateIcons() {
+			console.log('animateIcons');
+			var dx = 72,
+    			dy = 72,
+    			nx = 5,
+    			count = 0,
+    			i = 0;
+    		_.each(iconsA, function(el) {
+    			// if(el.x != undefined) {
+    				// el.translate(-el.x, -el.y).show();	
+    			// }
+    			
+    			var fill = el.fill;
+    			if(i>=5) {
+    				fill = "#aaa";
+    			}
+    			var x = count*dx;
+				var y = dy;
+				el = el.set;
+				el.x = x;
+				el.y = y;
+				var translationString = "t"+x+", "+y;
+				console.log("translationString: "+translationString);
+				el.animate({transform: translationString, fill: fill}, 1000, "<>").hover(function(){}, function(){});
+				count += 1;
+				i+=1;
+	            if(count >= 5) {
+	            	count = 0;
+	            	dy += 72;
+	            }
+    		});
+		}
+		
+		function loadIcons() {
+			var sfill = {fill: "#333", stroke: "none"},
+				none = {fill: "#000", opacity: 0},
+    			stroke = {stroke: "#fff", "stroke-width": 2, "stroke-linejoin": "round", opacity: 0};
+			_.each(jsonIcons, function(path, index) {
+				var icon = r.path(path.d).attr({'fill': path.fill, 'stroke':'#000'}),
+					s = r.path(path.d).attr(stroke);
+				//console.log(path);
+				var hit = r.rect(0, 0, 72, 72).attr({cursor: "pointer"}).attr(none).hover(function () {
+	                s.attr({opacity: 1});
+	            }, function () {
+	                s.attr({opacity: 0});
+	            }).click(function() {
+					s.attr({opacity: 0});
+	            	reorderIcons();
+	            });
+	            
+	            iconsA.push({set: r.set().push(icon, s, hit).hide(), fill: path.fill});
+			});
+			drawIcons();
+		}
+		
+		$(document).ready(function() {
+			$.getJSON('svg_to_json.php', {'f':'all.svg'}, function(resp) {
+				jsonIcons = resp;
+				console.log(resp);
+				loadIcons();
+				// console.log(resp);
+			});
+		});
+	</script>
+	</body>
+</html>
